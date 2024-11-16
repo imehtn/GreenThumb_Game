@@ -1,0 +1,28 @@
+//call this function in main to make header
+
+void header()
+{
+    FEHImage header;
+    header.Open("headerGame.png");
+    header.Draw(30, 213);
+
+    FEHImage coin;
+    coin.Open("Coin2.png");
+    coin.Draw(65,213);
+    
+    FEHImage plant;
+    plant.Open("potplantTR.png");
+    plant.Draw(110,213);
+
+    FEHImage invent;
+    invent.Open("inventoryIcon.png");
+    invent.Draw(155,213);
+
+    FEHImage shop;
+    shop.Open("shop.png");
+    shop.Draw(203,212);
+
+    FEHImage about;
+    about.Open("aboutIcon.png");
+    about.Draw(250,211);
+}
