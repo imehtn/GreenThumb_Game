@@ -1,0 +1,149 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+
+void welcome();
+void background();
+void header();
+void buttons();
+void createScreen(const char* imageFilename);
+void inventoryScreen();
+void coinScreen ();
+void plantScreen ();
+void shopScreen ();
+void aboutScreen ();
+void handleButtons(float a, float b, FEHIcon::Icon& button, void Screen());
+
+int main(void)
+{
+    welcome();
+    background();
+    header();
+    buttons();
+
+    while(1) 
+    {
+        LCD.Update(); //Never quit s
+    }
+    return 0;
+}
+
+void welcome()
+{
+    FEHImage titlePage("TitlePage.png");
+    titlePage.Draw(0,0);
+
+    Sleep(2000);
+}
+
+void background()
+{
+    FEHImage background;
+    background.Open("Background.png");
+    background.Draw(0,0);
+}
+
+void header()
+{
+    FEHImage header("headerGame.png");
+    header.Draw(0, 213);
+
+    FEHImage coin("Coin2.png");
+    coin.Draw(65,213);
+    
+    FEHImage plant("potplantTR.png");
+    plant.Draw(110,213);
+
+    FEHImage invent("inventoryIcon.png");
+    invent.Draw(155,213);
+
+    FEHImage shop("shop.png");
+    shop.Draw(203,212);
+
+    FEHImage about("aboutIcon.png");
+    about.Draw(250,211);
+}
+
+void createScreen(const char* imageFilename)
+{
+    FEHImage screen;
+    screen.Open(imageFilename);  // Load the screen image from the given file
+    screen.Draw(10, 0);  // Draw the image at the specified position
+}
+
+void inventoryScreen()
+{
+    createScreen("inventoryScreen.png");  // Call the generic function with the inventory screen image
+}
+
+void coinScreen ()
+{
+    //createScreen("coinScreen.png");  // Call the generic function with the inventory screen image
+}
+
+void plantScreen ()
+{
+    //createScreen("plantScreen.png");  // Call the generic function with the inventory screen image
+}
+
+void shopScreen ()
+{
+    //createScreen("shopScreen.png");  // Call the generic function with the inventory screen image
+}
+ void aboutScreen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+}
+
+void buttons()
+{
+    FEHIcon::Icon coinButton;
+    coinButton.SetProperties("",65,213,30,30,1,1);
+    coinButton.Draw();
+
+    FEHIcon::Icon plantButton;
+    plantButton.SetProperties("",110,213,30,30,1,1);
+    plantButton.Draw();
+
+    FEHIcon::Icon inventButton;
+    inventButton.SetProperties("",155,213,30,30,1,1);
+    inventButton.Draw();
+
+    FEHIcon::Icon shopButton;
+    shopButton.SetProperties("",203,213,30,30,1,1);
+    shopButton.Draw();
+
+    FEHIcon::Icon aboutButton;
+    aboutButton.SetProperties("",250,213,30,30,1,1);
+    aboutButton.Draw();
+
+    float a,b;
+    while(true)
+    {
+        LCD.Touch(&a,&b);
+        if (inventButton.Pressed(a,b,0))
+        {
+            // Handle button presses
+            //handleButtons(a, b, coinButton, coinScreen);
+            //handleButtons(a, b, plantButton, plantScreen);
+            handleButtons(a, b, inventButton, inventoryScreen);
+            //handleButtons(a, b, shopButton, shopScreen);
+        }
+        else if (aboutButton.Pressed(a,b,0))
+        {
+            handleButtons(a, b, aboutButton, aboutScreen);
+        }
+
+        header();
+    }
+}
+
+void handleButtons(float a, float b, FEHIcon::Icon& button, void Screen())
+{
+    if (button.Pressed(a,b,0))
+    {
+        button.WhilePressed(a,b);
+        button.Deselect();
+        Screen();
+    }
+}
