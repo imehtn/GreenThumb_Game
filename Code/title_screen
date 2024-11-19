@@ -4,7 +4,8 @@
 
 void welcome();
 void header();
-void buttons();
+//void buttons();
+void start_screen();
 void credit_screen();
 void stats_screen();
 void rules_screen();
@@ -15,13 +16,58 @@ int main(void)
 {    
     welcome();
     header();
-    buttons();
+    //buttons();
+
+    /*LCD.DrawRectangle(70,179,30,13);
+    LCD.DrawRectangle(120,179,30,13);
+    LCD.DrawRectangle(170,179,30,13);
+    LCD.DrawRectangle(220,179,30,13);*/
+
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=67 && x_coord<=104 && y_coord<=191 && y_coord>=179)
+        {
+            start_screen();
+            //LCD.WriteLine("start");
+            LCD.Update();
+        }
+        else if (x_coord>=117 && x_coord<=154 && y_coord<=191 && y_coord>=179)
+        {
+            stats_screen();
+            //LCD.WriteLine("stats");
+            LCD.Update(); //Never quit s
+        }
+        else if (x_coord>=167 && x_coord<=204 && y_coord<=191 && y_coord>=179)
+        {
+            rules_screen();
+            //LCD.WriteLine("rules");
+            LCD.Update(); //Never quit s
+        }
+        else if (x_coord>=217 && x_coord<=254 && y_coord<=191 && y_coord>=179)
+        {
+            credit_screen();
+            //LCD.WriteLine("credit");
+            LCD.Update(); //Never quit s
+        }
+    }
 
     while(1) 
     {
         LCD.Update(); //Never quit s
     }
     return 0;
+
 }
 
 void welcome()
@@ -33,20 +79,24 @@ void welcome()
 
 void header()
 {
-    FEHImage start ("start.png");
-    start.Draw(65,213);
+    FEHImage start;
+    start.Open("start.png");
+    start.Draw(-70,80);
     
-    FEHImage stats ("stats.png");
-    stats.Draw(110,213);
+    FEHImage stats;
+    stats.Open("stats.png");
+    stats.Draw(-20,105);
 
-    FEHImage rules("rules.png");
-    rules.Draw(155,213);
+    FEHImage rules;
+    rules.Open("rules.png");
+    rules.Draw(30,54);
 
-    FEHImage credit ("credit.png");
-    credit.Draw(203,212);
+    FEHImage credit;
+    credit.Open("credit.png");
+    credit.Draw(80,29);
 }
 
-void handleButtons(float a, float b, FEHIcon::Icon& button, void Screen())
+/*void handleButtons(float a, float b, FEHIcon::Icon& button, void Screen())
 {
     if (button.Pressed(a,b,0))
     {
@@ -54,57 +104,19 @@ void handleButtons(float a, float b, FEHIcon::Icon& button, void Screen())
         button.Deselect();
         Screen();
     }
-}
-
-void buttons()
-{
-    FEHIcon::Icon start;
-    start.SetProperties("",65,213,30,30,1,1);
-    start.Draw();
-
-    FEHIcon::Icon stats;
-    stats.SetProperties("",110,213,30,30,1,1);//press this, go into stats page, press quit
-    stats.Draw();
-
-    FEHIcon::Icon rules;
-    rules.SetProperties("",155,213,30,30,1,1);//go into instructions, press quit
-    rules.Draw();
-
-    FEHIcon::Icon credits;
-    credits.SetProperties("",203,213,30,30,1,1);//go to instructions, press quit
-    credits.Draw();
-    
-    float a,b;
-    while(true)
-    {
-        LCD.Touch(&a,&b);
-        if (start.Pressed(a,b,0))
-        {
-            // Handle button presses
-            handleButtons(a, b, start, rules_screen); //press this and go into actual game
-        }
-        else if (rules.Pressed(a,b,0))
-        {
-            handleButtons(a, b, rules, rules_screen);//make screen
-        }
-        else if(stats.Pressed(a,b,0))
-        {
-            handleButtons(a, b, stats, stats_screen);//make screen
-        }
-        else if(credits.Pressed(a,b,0))
-        {
-            handleButtons(a, b, credits, credit_screen);//credit screen
-        }
-
-        header();
-    }
-}
+}*/
 
 void createScreen(const char* imageFilename)
 {
     FEHImage screen;
     screen.Open(imageFilename);  // Load the screen image from the given file
-    screen.Draw(10, 0);  // Draw the image at the specified position
+    screen.Draw(0, 0);  // Draw the image at the specified position
+}
+
+void start_screen()
+{
+    createScreen("background.png");  // Call the generic function with the inventory screen image
+    createScreen("bar.png");  // Call the generic function with the inventory screen image
 }
 
 void credit_screen()
