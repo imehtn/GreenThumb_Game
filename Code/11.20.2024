@@ -1,0 +1,252 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+#include <Text.h>
+
+void welcome();//ingrid
+void goBackWelcome();//ingrid
+void goBackStart();//ingrid
+
+
+void createScreen(const char* imageFilename);//ingrid
+void credit_screen();
+void stats_screen();
+void rules_screen();
+void rules_screen1();
+
+void toolBar();
+void start_screen();
+
+int main(void)//ingrid
+{    
+    welcome();
+
+    
+
+    while(1) 
+    {
+        LCD.Update(); //Never quit s
+    }
+    return 0;
+
+}
+//welcome screen with touch evaluation
+void welcome()//bareesh & ingrid
+{
+    FEHImage titlePage("Title Page.png");
+    titlePage.Draw(0,0);
+    FEHImage start;
+    start.Open("start.png");
+    start.Draw(-70,80);
+    
+    FEHImage stats;
+    stats.Open("stats.png");
+    stats.Draw(-20,105);
+
+    FEHImage rules;
+    rules.Open("rules.png");
+    rules.Draw(30,54);
+
+    FEHImage credit;
+    credit.Open("credit.png");
+    credit.Draw(80,29);
+
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=67 && x_coord<=104 && y_coord<=191 && y_coord>=179)
+        {
+            start_screen();
+        }
+        else if (x_coord>=117 && x_coord<=154 && y_coord<=191 && y_coord>=179)
+        {
+            stats_screen();
+        }
+        else if (x_coord>=167 && x_coord<=204 && y_coord<=191 && y_coord>=179)
+        {
+            rules_screen();
+        }
+        else if (x_coord>=217 && x_coord<=254 && y_coord<=191 && y_coord>=179)
+        {
+            credit_screen();
+        }
+
+        LCD.Update();
+    }
+}
+//creates different screens
+void createScreen(const char* imageFilename)//bareesh
+{
+    FEHImage screen;
+    screen.Open(imageFilename);  // Load the screen image from the given file
+    screen.Draw(0, 0);  // Draw the image at the specified position
+}
+//goes back to welcome screen
+void goBackWelcome()//ingrid
+{
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within x button, goes back
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            welcome();
+        }
+        LCD.Update();
+    }
+}
+//makes main screen
+void start_screen()//bareesh
+{
+    createScreen("background.png");  // Call the generic function with the inventory screen image
+    FEHImage bar("bar.png");
+    bar.Draw(0,0);
+    toolBar();
+}
+//makes credit screen
+void credit_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    Text text;//bareesh
+    text.display("Art: Bareesh Sanghavi",0x946454, 70, 70);
+    text.display("     Ingrid Escalante-Hernandez",0x946454, 70, 80);
+    text.display("Code: Bareesh Sanghavi",0x946454, 70, 110);
+    text.display("      Ingrid Escalante-Hernandez",0x946454, 70, 120);
+    text.display("Font Library: Junhao Liu",0x946454, 70, 140);
+    
+    goBackWelcome();
+}
+//makes stats screen
+void stats_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    Text text;//bareesh
+    text.display("Most money earned: 0",0x946454, 70, 70);
+    text.display("Most plants owned: 0",0x946454, 70, 90);
+    text.display("[ACHIEVEMENTS] Green thumb:",0x946454, 70, 110);
+    text.display("All plants unlocked",0x946454, 70, 120);
+    text.display("[ACHIEVEMENTS] Plant lover:",0x946454, 70, 140);
+    text.display("Only one type of plant grown",0x946454, 70, 150);
+    
+    goBackWelcome();
+}
+//makes rules screen
+void rules_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    Text text;//bareesh
+    text.display("Your apartment community has",0x946454, 70, 70);
+    text.display("started a rooftop garden and you",0x946454, 70, 80);
+    text.display("are looking after it for the",0x946454, 70, 90);
+    text.display("first month! Remember to water",0x946454, 70, 100);
+    text.display("and trim your plants regularly",0x946454, 70, 110);
+    text.display("so you can sell them and expand",0x946454, 70, 120);
+    text.display("your garden. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants as",0x946454, 70, 140);
+    text.display("you can by the end of the month.",0x946454, 70, 150);
+     
+    goBackWelcome();
+}
+//goes back to the main screen
+void goBackStart()//ingrid
+{
+    
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            start_screen();
+        }
+        LCD.Update();
+    }
+}
+//makes rules screen
+void rules_screen1()//ingrid
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Your apartment community has",0x946454, 70, 70);
+    text.display("started a rooftop garden and you",0x946454, 70, 80);
+    text.display("are looking after it for the",0x946454, 70, 90);
+    text.display("first month! Remember to water",0x946454, 70, 100);
+    text.display("and trim your plants regularly",0x946454, 70, 110);
+    text.display("so you can sell them and expand",0x946454, 70, 120);
+    text.display("your garden. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants as",0x946454, 70, 140);
+    text.display("you can by the end of the month.",0x946454, 70, 150);
+    goBackStart();
+}
+//makes tool bar with touch evaluation
+void toolBar()//ingrid
+{
+    FEHImage coin("Coin2.png");
+    coin.Draw(65,213);
+    
+    FEHImage plant("potplantTR.png");
+    plant.Draw(110,213);
+
+    FEHImage shop("shopTR.png");
+    shop.Draw(155,212);
+
+    FEHImage about("aboutIcon.png");
+    about.Draw(213,211);
+
+    int x_coord, y_coord;
+
+    while(true)//ingrid
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        // If the click coordinates are within the button, goes to plant screen
+        if (x_coord>=110 && x_coord<=140 && y_coord<=243 && y_coord>=213)
+        {
+            //plant_screen();
+        }
+        //shop/inventory screen
+        else if (x_coord>=155 && x_coord<=185 && y_coord<=243 && y_coord>=213)
+        {
+            //SI_screen();
+        }
+        //rules screen
+        else if (x_coord>=213 && x_coord<=243 && y_coord<=243 && y_coord>=213)
+        {
+            rules_screen1();
+        }
+
+        LCD.Update();
+    }
+}
