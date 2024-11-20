@@ -1,0 +1,214 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+
+void welcome();
+void goBackWelcome();
+void goBackStart();
+
+
+void createScreen(const char* imageFilename);
+void credit_screen();
+void stats_screen();
+void rules_screen();
+void rules_screen1();
+
+void toolBar();
+void start_screen();
+
+int main(void)
+{    
+    welcome();
+
+    while(1) 
+    {
+        LCD.Update(); //Never quit s
+    }
+    return 0;
+
+}
+//welcome screen with touch evaluation
+void welcome()
+{
+    FEHImage titlePage("TitlePage.png");
+    titlePage.Draw(0,0);
+    FEHImage start;
+    start.Open("start.png");
+    start.Draw(-70,80);
+    
+    FEHImage stats;
+    stats.Open("stats.png");
+    stats.Draw(-20,105);
+
+    FEHImage rules;
+    rules.Open("rules.png");
+    rules.Draw(30,54);
+
+    FEHImage credit;
+    credit.Open("credit.png");
+    credit.Draw(80,29);
+
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=67 && x_coord<=104 && y_coord<=191 && y_coord>=179)
+        {
+            start_screen();
+        }
+        else if (x_coord>=117 && x_coord<=154 && y_coord<=191 && y_coord>=179)
+        {
+            stats_screen();
+        }
+        else if (x_coord>=167 && x_coord<=204 && y_coord<=191 && y_coord>=179)
+        {
+            rules_screen();
+        }
+        else if (x_coord>=217 && x_coord<=254 && y_coord<=191 && y_coord>=179)
+        {
+            credit_screen();
+        }
+
+        LCD.Update();
+    }
+}
+//creates different screens
+void createScreen(const char* imageFilename)
+{
+    FEHImage screen;
+    screen.Open(imageFilename);  // Load the screen image from the given file
+    screen.Draw(0, 0);  // Draw the image at the specified position
+}
+//goes back to welcome screen
+void goBackWelcome()
+{
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within x button, goes back
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            welcome();
+        }
+        LCD.Update();
+    }
+}
+//makes credit screen
+void credit_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    goBackWelcome();
+}
+//makes stats screen
+void stats_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    
+    goBackWelcome();
+}
+//makes rules screen
+void rules_screen()
+{
+    createScreen("aboutScreen.png");  // Call the generic function with the inventory screen image
+    goBackWelcome();
+}
+//goes back to the main screen
+void goBackStart()
+{
+    
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //LCD.WriteLine("Touch coordinates: X=" + std::to_string(x_coord) + ", Y=" + std::to_string(y_coord));
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            start_screen();
+        }
+        LCD.Update();
+    }
+}
+//makes rules screen
+void rules_screen1()
+{
+    createScreen("aboutScreen.png");  
+    goBackStart();
+}
+//makes tool bar with touch evaluation
+void toolBar()
+{
+    FEHImage coin("Coin2.png");
+    coin.Draw(65,213);
+    
+    FEHImage plant("potplantTR.png");
+    plant.Draw(110,213);
+
+    FEHImage shop("shop.png");
+    shop.Draw(155,212);
+
+    FEHImage about("aboutIcon.png");
+    about.Draw(213,211);
+
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        // If the click coordinates are within the button, goes to plant screen
+        if (x_coord>=110 && x_coord<=140 && y_coord<=243 && y_coord>=213)
+        {
+            //plant_screen();
+        }
+        //shop/inventory screen
+        else if (x_coord>=155 && x_coord<=185 && y_coord<=243 && y_coord>=213)
+        {
+            //SI_screen();
+        }
+        //rules screen
+        else if (x_coord>=213 && x_coord<=243 && y_coord<=243 && y_coord>=213)
+        {
+            rules_screen1();
+        }
+
+        LCD.Update();
+    }
+}
+//makes main screen
+void start_screen()
+{
+    createScreen("background.png");  // Call the generic function with the inventory screen image
+    FEHImage bar("bar.png");
+    bar.Draw(0,213);
+    toolBar();
+}
