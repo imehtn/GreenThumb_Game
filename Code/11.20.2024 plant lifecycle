@@ -1,0 +1,187 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+
+class v1plant
+{
+    public:
+    //game mechanics functions
+    void type(); //based on selection
+    void cycle(); //time-based function
+    void sell();//if sold, reverts to a pot, type and status resets
+
+    //all drawing functions
+    void plant_seed();
+    void plant();
+    void plant_sick();
+    void plant_overgrown();
+    void plant_dead();
+    void plant_cycle();
+
+    private:
+    int xcoord = 0, ycoord = 0;//fixed
+};
+//when called, do plant[10] for 10 plants in view 1
+
+int main(void)
+{    
+    
+    v1plant plant;
+    plant.plant_cycle();
+    
+    while(1) 
+    {
+        LCD.Update(); //Never quit s
+    }
+    return 0;
+
+}
+
+void v1plant:: plant_seed()
+{
+    FEHImage seed;
+    seed.Open("seed.png");
+    seed.Draw(0,0);
+}
+
+void v1plant::plant()
+{
+    FEHImage plant;
+    plant.Open("plant.png");
+    plant.Draw(0,0);
+}
+void v1plant:: plant_sick()
+{
+    FEHImage sick;
+    sick.Open("dryplant.png");
+    sick.Draw(0,0);
+}
+void v1plant:: plant_overgrown()
+{
+    FEHImage overgrown;
+    overgrown.Open("trimplant.png");
+    overgrown.Draw(0,0);
+}
+void v1plant:: plant_dead()
+{
+    LCD.Clear();
+    FEHImage dead;
+    dead.Open("pot.png");
+    dead.Draw(0,0);
+}
+void v1plant:: plant_cycle()
+{
+    float dry_t = TimeNow();
+    float overgrown_t = TimeNow();
+
+    plant_seed();
+    LCD.Update();
+    Sleep(0.5);
+
+    plant();
+    LCD.Update();
+
+    int dead = 0;
+
+    while(!dead==1)
+    {
+        if ((TimeNow()-dry_t)>5)
+        {
+            plant_sick();
+            LCD.Update();
+
+            int xClick, yClick;
+
+            LCD.WriteLine("dry_t:" + std::to_string(TimeNow()-dry_t));
+            LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+
+            //dry_t = TimeNow();
+            while ((TimeNow()-dry_t)<=10)
+            {
+                //while(!LCD.Touch(&xClick, &yClick)){}
+                if (LCD.Touch(&xClick, &yClick))
+                {
+                    // If the click coordinates are within the pot, plant is healthy again
+                    if (xClick>=150 && xClick<=170 && yClick<=115 && yClick>=100)
+                    {
+                        dry_t = TimeNow();
+                        LCD.WriteLine("dry_t:" + std::to_string(TimeNow()-dry_t));
+                        LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+
+                        plant();
+                        LCD.Update();
+                    }
+                }
+            }
+
+            LCD.WriteLine("dry_t:" + std::to_string(TimeNow()-dry_t));
+            LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+            if ((TimeNow()-dry_t)>10)
+            {
+                LCD.WriteLine("dry_t:" + std::to_string(TimeNow()-dry_t));
+                LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+                LCD.Clear();
+                plant_dead();
+                LCD.Update();
+                dead = 1;
+            }
+        }
+
+        LCD.WriteLine("dry_t:" + std::to_string(TimeNow()-dry_t));
+        LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+        if ((TimeNow()-overgrown_t)>15 && dead == 0)//add a way to fix it
+        {
+            plant_overgrown();
+            LCD.Update();
+
+            int xClick, yClick;
+
+
+            //overgrown_t = TimeNow();
+            while ((TimeNow()-overgrown_t)<=20 && dead == 0)
+            {
+                //while(!LCD.Touch(&xClick, &yClick)){}
+
+                // Waits for release
+                if (LCD.Touch(&xClick, &yClick))
+                {
+                    // If the click coordinates are within the pot, plant is healthy again
+                    if (xClick>=150 && xClick<=170 && yClick<=115 && yClick>=100)
+                    {
+                        overgrown_t = TimeNow();
+                        LCD.WriteLine("overgrown_t: " + std::to_string(TimeNow()-overgrown_t));
+                        plant();
+                        LCD.Update();
+                    }
+                }
+            }
+
+            printf("overgrown_t: %f", TimeNow()-overgrown_t);
+            if ((TimeNow()-overgrown_t)>20 && dead == 0)
+            {
+                LCD.Clear();
+                plant_dead();
+                LCD.Update();
+                dead = 1;
+            }
+        }
+        printf("dry_t: %f", TimeNow()-dry_t);
+        printf("overgrown_t: %f", TimeNow()-overgrown_t);
+    }
+
+
+}
+
+//right now, after clicking the pot once, nothing happens
+
+//logic: dry+overgrown time starts
+
+//loop starts
+
+//dry time > 5, warning
+//if you click before dry time > 10, dry time resets, otherwise dead
+
+//overgrown time > 15, warning
+//if you click before overgrown time > 20, overgrown time resets, otherwise dead
+
+//this is continue until dead
