@@ -1,5 +1,5 @@
 Goals left for plant lifecycle function:
-1. adjust lifecycle code for final plant images + numbers + positions
+1. adjust lifecycle code for final plant images --> needs 10 switch case scenarios for all drawings
 2. sell function
 3. integrate with main game tool bar and view 1 and view 2
 
