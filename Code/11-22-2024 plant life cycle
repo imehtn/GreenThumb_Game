@@ -1,0 +1,343 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+
+class v1plant
+{
+    public:
+    //game mechanics functions
+    void type(); //based on selection
+    void sell();//if sold, reverts to a pot, type and status resets
+
+    //all drawing functions
+    void plant_seed();
+    void plant();
+    void plant_sick();
+    void plant_overgrown();
+    void plant_dead();
+    
+    void plant_initialize();
+    void plant_cycle();
+    void settime();
+    void reactivate(int xclick, int yclick);
+
+    int xcoord = 0, ycoord = 0;//fixed
+    float drytime;
+    float overgrowntime;
+
+    int isactive = 0; //0 means inactive, 1 means active
+    int dead = 0;//dead = 0 plant is dead, dead = 1 plant is not dead
+
+    private:
+    enum class plantstate
+    {
+        SEED,
+        PLANT,
+        DRY,
+        OVERGROWN,
+        DEAD
+    };
+
+    plantstate state;
+    int planttype;
+};
+//when called, do plant[10] for 10 plants in view 1
+
+int main(void)
+{    
+    v1plant plants [3];
+    //for (int i = 0; i<3; i++)
+    //{
+        //maybe put the below in a for loop, whether all together like below or separately in 3 for loops
+        /*
+        plants[i].type();
+        plants[i].xcoord();
+        plants[i].ycoord();   
+        plants[i].initialize();   
+        plants[i].settime();  
+         */
+    //} 
+    plants[0].type();
+    plants[1].type();
+    plants[2].type();
+
+    plants[0].xcoord = 0;
+    plants[0].ycoord = 0;
+
+    plants[1].xcoord = -30;
+    plants[1].ycoord = 0;
+
+    plants[2].xcoord = -60;
+    plants[2].ycoord = 0;
+
+    plants[0].plant_initialize();
+    plants[1].plant_initialize();
+    plants[2].plant_initialize();
+
+    plants[0].settime();
+    plants[1].settime();
+    plants[2].settime();
+
+    while (true)
+    {
+        for (int i = 0; i<3; i++)
+        {
+            if (plants[i].isactive == 1)
+            {
+                plants[i].plant_cycle();
+                LCD.Update(); //Never quits
+            }
+            int xClick, yClick;
+            if (LCD.Touch(&xClick, &yClick))
+            {
+                for (int j = 0; j<3; j++)
+                {
+                    if (plants[j].isactive == 0)
+                    {
+                        plants[j].reactivate(xClick, yClick);
+                        if (plants[j].isactive == 1)
+                        {
+                            break;
+                        }
+                    }
+                    //update isalive if a click has occured, some sort of void reactivate
+                    //check if click on type button occured, if yes, check through array of plants[i] for plants[i].isalive == 0, void type(); 
+                }
+            }
+        }
+    }
+    
+    while (true)
+    {
+        LCD.Update();
+    }
+    return 0;
+}
+
+void v1plant::type()
+{
+    LCD.DrawRectangle(0,0,10,10);
+    LCD.SetFontColor(RED);
+    LCD.DrawRectangle(10,10,10,10);
+
+    int xClick, yClick;
+    while (!LCD.Touch(&xClick, &yClick)){}
+    while (LCD.Touch(&xClick, &yClick)){}
+    // Check if touch is in a certain area to select a plant type
+    if (xClick >= 0 && xClick <= 10 && yClick >= 0 && yClick <= 10) 
+    {
+        planttype = 0;  // Select green plant
+        isactive = 1;
+    } 
+    else if (xClick >= 10 && xClick <= 20 && yClick >= 10 && yClick <= 20) 
+    {
+        planttype = 1;  // Select red plant
+        isactive = 1;
+    }
+}
+
+void v1plant::reactivate(int xclick, int yclick)
+{
+    // Check if touch is in a certain area to select a plant type
+    if (xclick >= 0 && xclick <= 10 && yclick >= 0 && yclick <= 10) 
+    {
+        //if (isactive == 0)
+        //{
+            planttype = 0;  // Select green plant
+            isactive = 1;
+            plant_initialize();
+            LCD.Update();
+            settime();
+        //}
+    } 
+    else if (xclick >= 10 && xclick <= 20 && yclick >= 10 && yclick <= 20) 
+    {
+        //if (isactive == 0)
+        //{
+            planttype = 1;  // Select red plant
+            isactive = 1;
+            plant_initialize();
+            LCD.Update();
+            settime();
+        //}
+    }
+}
+
+void v1plant::settime()
+{
+    drytime = TimeNow();
+    overgrowntime = TimeNow();
+}
+
+void v1plant:: plant_seed()
+{
+    FEHImage seed;
+    if (planttype == 0)
+    {
+        seed.Open("seed.png");
+    }
+    else if (planttype == 1)
+    {
+        seed.Open("seedi.png");
+    }
+    seed.Draw(xcoord,ycoord);
+}
+
+void v1plant::plant()
+{
+    FEHImage plant;
+    if (planttype == 0)
+    {
+        plant.Open("plant.png");
+    }
+    else if (planttype == 1)
+    {
+        plant.Open("planti.png");
+    }
+    plant.Draw(xcoord,ycoord);
+}
+void v1plant:: plant_sick()
+{
+    FEHImage sick;
+    if (planttype == 0)
+    {
+        sick.Open("dryplant.png");
+    }
+    else if (planttype == 1)
+    {
+        sick.Open("dryplanti.png");
+    }
+    sick.Draw(xcoord,ycoord);
+}
+void v1plant:: plant_overgrown()
+{
+    FEHImage overgrown;
+    if (planttype==0)
+    {
+        overgrown.Open("trimplant.png");
+    }
+    else if (planttype == 1)
+    {
+        overgrown.Open("trimplanti.png");
+    }
+    overgrown.Draw(xcoord,ycoord);
+}
+void v1plant:: plant_dead()
+{
+    //LCD.Clear();
+    FEHImage dead;
+    if (planttype==0)
+    {
+        dead.Open("pot.png");
+    }
+    else if (planttype==1)
+    {
+        dead.Open("poti.png");
+    }
+    dead.Draw(xcoord,ycoord);
+}
+void v1plant:: plant_initialize()
+{
+    float init_t = TimeNow();
+
+    state = plantstate::SEED;
+    plant_seed();
+    LCD.Update();
+    while ((TimeNow()-init_t)<=5){}
+    plant();
+    LCD.Update();
+    state = plantstate::PLANT;
+
+    //drytime = TimeNow();
+    //overgrowntime = TimeNow();
+}
+
+void v1plant::plant_cycle()
+{
+    printf("%d\n", state);
+    
+    if (state != plantstate::DEAD)
+    {
+        switch (state)
+        {
+            case plantstate::PLANT:
+            {
+                if ((TimeNow()-drytime)>10)
+                {
+                    plant_sick();
+                    LCD.Update();
+                    state = plantstate::DRY;
+                }
+                else if ((TimeNow()-overgrowntime)>20)
+                {
+                    plant_overgrown();
+                    LCD.Update();
+                    state = plantstate::OVERGROWN;
+                }
+                break;
+            }
+            case plantstate::DRY:
+            {
+                if ((TimeNow()-drytime)<=15)
+                {
+                    int xClick, yClick;
+                    //while(!LCD.Touch(&xClick, &yClick)){}
+                    if (LCD.Touch(&xClick, &yClick))
+                    {
+                        // If the click coordinates are within the pot, plant is healthy again
+                        if (xClick>=(xcoord+150) && xClick<=(xcoord+170) && yClick<=(ycoord+115) && yClick>=(ycoord+100))
+                        {
+                            drytime = TimeNow();
+                            plant();
+                            LCD.Update();
+                            state = plantstate::PLANT;
+                        }
+                    }
+                }
+
+                if ((TimeNow()-drytime)>15)
+                {
+                    //LCD.Clear();
+                    plant_dead();
+                    LCD.Update();
+                    state = plantstate::DEAD;
+                    isactive = 0;
+                    break;
+                }
+                break;
+            }
+            case plantstate::OVERGROWN:
+            {
+                if ((TimeNow()-overgrowntime)<=25)
+                {
+                    int xClick, yClick;
+                    //while(!LCD.Touch(&xClick, &yClick)){}
+                    if (LCD.Touch(&xClick, &yClick))
+                    {
+                        // If the click coordinates are within the pot, plant is healthy again
+                        if (xClick>=(xcoord+150) && xClick<=(xcoord+170) && yClick<=(ycoord+115) && yClick>=(ycoord+100))
+                        {
+                            overgrowntime = TimeNow();
+                            plant();
+                            LCD.Update();
+                            state = plantstate::PLANT;
+                        }
+                    }
+                }
+
+                if ((TimeNow()-overgrowntime)>25)
+                {
+                    //LCD.Clear();
+                    plant_dead();
+                    LCD.Update();
+                    state = plantstate::DEAD;
+                    isactive = 0;
+                }
+                break;
+            }
+        }
+    }
+
+}
+
+//select plant type --> right now it just waits for the user to click on the species, THEN it draws everything
