@@ -1,5 +1,5 @@
 Goals left for plant lifecycle function:
-1. expand beyond reactivating dead plants, activate new plants up to 10
+[DONE] expand beyond reactivating dead plants, activate new plants up to 10
 2. sell function
 3. integrate with main game tool bar and view 1 and view 2
 
