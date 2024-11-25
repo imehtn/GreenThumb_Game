@@ -1,0 +1,234 @@
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+#include <Text.h>
+#include <Welcome.h>
+#include <mainPage.h>
+
+void createScreen(const char* imageFilename);
+void credit_screen();
+void stats_screen();
+void rules_screen();
+void rules_screen1();
+void plant_screen();
+void start_screen();
+
+class plant 
+{
+    public:
+    int price;
+    int owned;
+    const char* image;
+};
+
+plant plants[5] = {
+    {10, 0, "RoyalCatchflyBaby.png"},
+    {15, 0, "BlackEyedSusanBaby.png"},
+    {25, 0, "BlueWildIndigoBaby.png"},
+    {50, 0, "ButterflyWeedBaby.png"},
+    {75, 0, "RoseMilkweedBaby.png"}
+};
+
+struct Button {
+    int x1, x2, y1, y2;
+    int plantIndex;
+};
+
+Button buttons[] = {
+    {48, 68, 106, 115, 0},
+    {96, 116, 106, 115, 1},
+    {144, 164, 106, 115, 2},
+    {192, 212, 106, 115, 3},
+    {240, 260, 106, 115, 4},
+    {250, 280, 30, 60, -1} // Back button
+};
+
+class totCoins
+{
+    public:
+    int coins=100;
+}mycoins;
+
+int main(void)
+{    
+    welcome(start_screen, stats_screen,rules_screen,credit_screen);
+    
+    while(1) 
+    {
+        LCD.Update(); //Never quits
+    }
+    return 0;
+}
+
+//creates different screens
+void createScreen(const char* imageFilename)
+{
+    FEHImage screen(imageFilename);  // Load the screen image from the given file
+    screen.Draw(0,0);  // Draw the image at the specified position
+}
+//makes credit screen
+void credit_screen()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Art: Bareesh Sanghavi",0x946454, 70, 70);
+    text.display("     Ingrid Escalante-Hernandez",0x946454, 70, 80);
+    text.display("Code: Bareesh Sanghavi",0x946454, 70, 110);
+    text.display("      Ingrid Escalante-Hernandez",0x946454, 70, 120);
+    text.display("Font Library: Junhao Liu",0x946454, 70, 140);
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+//makes stats screen
+void stats_screen()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Most money earned: 0",0x946454, 70, 70);
+    text.display("Most plants owned: 0",0x946454, 70, 90);
+    text.display("[ACHIEVEMENTS] Green thumb:",0x946454, 70, 110);
+    text.display("All plants unlocked",0x946454, 70, 120);
+    text.display("[ACHIEVEMENTS] Plant lover:",0x946454, 70, 140);
+    text.display("Only one type of plant grown",0x946454, 70, 150);
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+//makes rules screen
+void rules_screen()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Your apartment community has",0x946454, 70, 70);
+    text.display("started a rooftop garden and you",0x946454, 70, 80);
+    text.display("are looking after it for the",0x946454, 70, 90);
+    text.display("first month! Remember to water",0x946454, 70, 100);
+    text.display("and trim your plants regularly",0x946454, 70, 110);
+    text.display("so you can sell them and expand",0x946454, 70, 120);
+    text.display("your garden. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants as",0x946454, 70, 140);
+    text.display("you can by the end of the month.",0x946454, 70, 150);
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+//makes rules screen
+void rules_screen1()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Your apartment community has",0x946454, 70, 70);
+    text.display("started a rooftop garden and you",0x946454, 70, 80);
+    text.display("are looking after it for the",0x946454, 70, 90);
+    text.display("first month! Remember to water",0x946454, 70, 100);
+    text.display("and trim your plants regularly",0x946454, 70, 110);
+    text.display("so you can sell them and expand",0x946454, 70, 120);
+    text.display("your garden. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants as",0x946454, 70, 140);
+    text.display("you can by the end of the month.",0x946454, 70, 150);
+    goBackStart(start_screen);
+}
+void drawplant(plant &plant, int num)
+{
+    createScreen("inventoryScreen.png");  
+
+    FEHImage coin("Coin2.png");
+    coin.Draw(25,32);
+
+    for (int i=0;i<5;i++)
+    {
+        FEHImage buy("buy.png");
+        buy.Draw(48+i*48,106);
+        FEHImage sell("sell.png");
+        sell.Draw(66+i*48,106);
+        FEHImage more("more.png");
+        more.Draw(54+i*48,117);
+    }
+    
+    char coinsText[10];  
+    sprintf(coinsText, "%d", mycoins.coins);  // Convert owned count to string
+    Text text;
+    text.display(coinsText,0x000000, 57, 42);
+    //image
+    FEHImage plantImages[5] = {
+        FEHImage("RoyalCatchflyBaby.png"),
+        FEHImage("BlackEyedSusanBaby.png"),
+        FEHImage("BlueIndigoBaby.png"),
+        FEHImage("ButterflyWeedN.png"),
+        FEHImage("RoseMilkweedBaby.png")
+    };
+
+    int coordinates[5]={32,80,128,176,224};
+    //displays owned plants
+    for (int i = 0;i<5;i++)
+    {
+        plantImages[i].Draw(39 + i * 48, 54);  // Dynamic position based on 'num'
+        char ownedText[10];  
+        sprintf(ownedText, "%d", plants[i].owned);  // Convert owned count to string
+        LCD.WriteAt(ownedText, coordinates[i], 63); 
+    }
+
+}
+//makes inventory/shop screen
+void plant_screen()
+{
+    plant royal;
+    royal.price=10;
+    royal.owned =0;
+
+    plant plant2;
+    plant2.price=15;
+    plant2.owned =0;
+
+    plant plant3;
+    plant3.price=25;
+    plant3.owned =0;
+
+    plant plant4;
+    plant4.price=50;
+    plant4.owned =0;
+
+    plant plant5;
+    plant5.price=75;
+    plant5.owned =0;
+    
+    drawplant(royal,0);
+
+    int x_coord, y_coord;
+    while (true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        for (int i = 0; i < sizeof(buttons) / sizeof(Button); i++) 
+        {
+            if (x_coord >= buttons[i].x1 && x_coord <= buttons[i].x2 && y_coord >= buttons[i].y1 && y_coord <= buttons[i].y2) 
+            {
+                if (buttons[i].plantIndex >= 0) 
+                {
+                    // Check if the player has enough coins to buy the plant
+                    if (mycoins.coins >= plants[buttons[i].plantIndex].price) 
+                    {
+                    // Increment the owned count and deduct the coins
+                    plants[buttons[i].plantIndex].owned++;
+                    mycoins.coins -= plants[buttons[i].plantIndex].price;
+                    // Call drawplant with the correct arguments
+                    drawplant(plants[buttons[i].plantIndex], buttons[i].plantIndex);
+                    }
+                } 
+                else 
+                {
+                    // Handle the back button logic (optional)
+                    goBackStart(start_screen);
+                }
+            }
+        }
+        LCD.Update();
+    }
+}
+//makes main screen
+void start_screen()
+{
+    createScreen("background.png");  // Call the generic function with the inventory screen image
+    FEHImage bar("bar.png");
+    bar.Draw(0,213);
+    toolBar(plant_screen,rules_screen1);
+}
