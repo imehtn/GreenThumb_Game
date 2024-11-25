@@ -1,0 +1,68 @@
+//main page header file
+#ifndef mainPage_H
+#define mainPage_H
+
+#include <Text.h>
+#include "simulator_libraries/FEHUtility.h"
+#include "simulator_libraries/FEHLCD.h"
+#include "simulator_libraries/FEHImages.h"
+
+//makes tool bar with touch evaluation
+void toolBar(void screen1(), void screen2())
+{
+    FEHImage plant("potplantTR.png");
+    plant.Draw(115,213);
+
+    FEHImage about("aboutIcon.png");
+    about.Draw(155,211);
+
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        // If the click coordinates are within the button, goes to plant screen
+        if (x_coord>=115 && x_coord<=145 && y_coord<=243 && y_coord>=213)
+        {
+            screen1();
+        }
+    
+        else if (x_coord>=155 && x_coord<=185 && y_coord<=243 && y_coord>=213)
+        {
+            screen2();
+        }
+
+        LCD.Update();
+    }
+}
+
+//goes back to the main screen
+void goBackStart(void screen1())
+{
+    
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        // If the click coordinates are within the button, (does stuff)
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            screen1();
+        }
+        
+        LCD.Update();
+    }
+}
+
+#endif
