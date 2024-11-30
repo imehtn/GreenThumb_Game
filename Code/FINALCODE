@@ -198,11 +198,11 @@ void stats_screen()
     text.display("Number of coins: ",0x946454,70,70);
     text.display("Planted plants: ",0x946454,70,85);
     text.display("Dead plants: ",0x946454,70,100);
-    text.display("Active Royal Catchflies: ",0x946454,70,115);
-    text.display("Active Black Eyed Susans: ",0x946454,70,130);
-    text.display("Active Blue Wild Indigos: ",0x946454,70,145);
-    text.display("Active Butterfly Weeds: ",0x946454,70,160);
-    text.display("Active Rose MilkWeeds: ",0x946454,70,175);
+    text.display("Live Royal Catchflies: ",0x946454,70,115);
+    text.display("Live Black Eyed Susans: ",0x946454,70,130);
+    text.display("Live Blue Wild Indigos: ",0x946454,70,145);
+    text.display("Live Butterfly Weeds: ",0x946454,70,160);
+    text.display("Live Rose MilkWeeds: ",0x946454,70,175);
 
 
     if (allRounds.empty()) 
@@ -579,31 +579,35 @@ void endtimer()
     text.display(writeText,0x946454,230,70);
     text.display("Planted plants: ",0x946454,70,85);
     text.display("Dead plants: ",0x946454,70,100);
-    text.display("Active Royal Catchflies: ",0x946454,70,115);
-    text.display("Active Black Eyed Susans: ",0x946454,70,130);
-    text.display("Active Blue Wild Indigos: ",0x946454,70,145);
-    text.display("Active Butterfly Weeds: ",0x946454,70,160);
-    text.display("Active Rose MilkWeeds: ",0x946454,70,175);
+    text.display("Live Royal Catchflies: ",0x946454,70,115);
+    text.display("Live Black Eyed Susans: ",0x946454,70,130);
+    text.display("Live Blue Wild Indigos: ",0x946454,70,145);
+    text.display("Live Butterfly Weeds: ",0x946454,70,160);
+    text.display("Live Rose MilkWeeds: ",0x946454,70,175);
     //get information for this rounds
     stats newStats;
     for (int i = 0; i < plantsptr.size(); i++)  // loop through all plants
         {
             if (plantsptr[i].isactive == 1)  // only active plants
             {
-            newStats.planted++;
-            switch (plantsptr[i].planttype)
-            {
-            case 0: newStats.plant1++; break;
-            case 1: newStats.plant2++; break;
-            case 2: newStats.plant3++; break;
-            case 3: newStats.plant4++; break;
-            case 4: newStats.plant5++; break;
+                newStats.planted++;
+                if (plantsptr[i].state != v1plant::plantstate::DEAD)
+                {
+                    switch (plantsptr[i].planttype)
+                    {
+                        case 0: newStats.plant1++; break;
+                        case 1: newStats.plant2++; break;
+                        case 2: newStats.plant3++; break;
+                        case 3: newStats.plant4++; break;
+                        case 4: newStats.plant5++; break;
+                    }
+                }
+                if (plantsptr[i].state == v1plant::plantstate::DEAD)
+                {
+                    newStats.dead++;
+                }
             }
-        }
-        else if (plantsptr[i].state == v1plant::plantstate::DEAD)
-        {
-            newStats.dead++;
-        }
+        
     } 
     sprintf(writeText, "%d", newStats.planted);  // Convert coins to string
     text.display(writeText,0x946454,230,85);
@@ -903,7 +907,7 @@ void v1plant::plant_cycle()
                     {
                         if (xClick>=(xcoord+16) && xClick<=(xcoord+37) && yClick<=(ycoord+49) && yClick>=(ycoord+31))
                         {
-                            mycoins.coins += price;  // Add price to coins
+                            mycoins.coins += price+10;  // Add price to coins
                             for (int i = 0; i < availableCoords.size(); i++)
                             {
                                 // Check if the coordinates match the plant's current position
@@ -922,6 +926,7 @@ void v1plant::plant_cycle()
                             isactive = 0;  // Mark plant as inactive
 
                             LCD.Update();
+                            Sleep(100);
                             plant_screen();
                             break;
                         }
