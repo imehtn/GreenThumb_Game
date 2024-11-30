@@ -1,0 +1,76 @@
+
+#ifndef mainPage_H
+#define mainPage_H
+
+#include <Text.h>
+#include "simulator_libraries/FEHUtility.h"
+#include "simulator_libraries/FEHLCD.h"
+#include "simulator_libraries/FEHImages.h"
+#include <Welcome.h>
+
+bool isPlantScreenActive = false;
+
+//Makes tool bar with touch evaluation, allows user to open the shop and the rules screen.
+//Function arguments draw the resulting screens when the player clicks certain buttons.
+//Written by Ingrid
+void toolBar(void screen1(), void screen2())
+{
+    FEHImage plant("potplantTR.png");//draws the shop icon
+    plant.Draw(115,213);
+
+    FEHImage about("aboutIcon.png");//draws the rules icon
+    about.Draw(155,211);
+
+    int x_coord, y_coord;
+    //while(true)
+    //{
+        if (LCD.Touch(&x_coord, &y_coord))//check for clicks
+        {
+            // If the click coordinates are within the button, goes to plant screen
+            if (x_coord>=115 && x_coord<=145 && y_coord<=243 && y_coord>=213)
+            {
+                screen1();//screenX() functions are in main.cpp
+            }
+            else if (x_coord>=155 && x_coord<=185 && y_coord<=243 && y_coord>=213)
+            {
+                screen2();
+            }
+            LCD.Update();
+        }
+    //}
+}
+
+//Goes back to the main screen, the input argument draws the main screen
+//Written by Ingrid
+void goBackStart(void screen1())
+{
+    int x_coord, y_coord;
+
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        // If the click coordinates are within the button, goes back ot main screen
+        if(x_coord>=250 && x_coord<=280 && y_coord<=60 && y_coord>=30)
+        {
+            screen1();
+        }
+        
+        LCD.Update();
+    }
+}
+
+
+//Creates different screens, the input argument is the pointer file name for the relevant .png file
+//Written by Ingrid
+void createScreen(const char* imageFilename)
+{
+    FEHImage screen(imageFilename);  // Load the screen image from the given file
+    screen.Draw(0,0);  // Draw the image at the specified position
+}
+
+#endif
