@@ -127,6 +127,7 @@ void initializeAllPlants()
         }
     }
 }
+int sold=0;
 //vector for price, owned, and image type
 vector<v1plant> plantsInPots = {
     v1plant(10, 0, "RoyalCatchflyBaby.png"),
@@ -138,10 +139,10 @@ vector<v1plant> plantsInPots = {
 //stat variables for each round
 class stats{
     public: 
-    int coins, planted,dead,plant1,plant2,plant3,plant4,plant5;
+    int coins, planted,soldTot,plant1,plant2,plant3,plant4,plant5;
     stats() {
         // Initialize all variables to 0 by default
-        coins = planted = dead = plant1 = plant2 = plant3 = plant4 = plant5 = 0;
+        coins = planted = soldTot = plant1 = plant2 = plant3 = plant4 = plant5 = 0;
     }
 };
 //stores the stats for alltime rounds
@@ -196,8 +197,8 @@ void stats_screen()
     Text text;
     text.display("BEST OF ALL ROUNDS: ",0xFF0000,65,50);
     text.display("Number of coins: ",0x946454,70,70);
-    text.display("Planted plants: ",0x946454,70,85);
-    text.display("Dead plants: ",0x946454,70,100);
+    text.display("Plants in garden: ",0x946454,70,85);
+    text.display("Plants sold: ",0x946454,70,100);
     text.display("Live Royal Catchflies: ",0x946454,70,115);
     text.display("Live Black Eyed Susans: ",0x946454,70,130);
     text.display("Live Blue Wild Indigos: ",0x946454,70,145);
@@ -212,7 +213,7 @@ void stats_screen()
 
     int maxCoins = allRounds[0].coins;
     int maxPlanted = allRounds[0].planted;
-    int maxDead = allRounds[0].dead;
+    int maxSold = allRounds[0].soldTot;
     int maxPlant1 = allRounds[0].plant1;
     int maxPlant2 = allRounds[0].plant2;
     int maxPlant3 = allRounds[0].plant3;
@@ -223,7 +224,7 @@ void stats_screen()
     {
         maxCoins = max(maxCoins,allRounds[i].coins);
         maxPlanted = max(maxPlanted, allRounds[i].planted);
-        maxDead = max(maxDead, allRounds[i].dead);
+        maxSold = max(maxSold, allRounds[i].soldTot);
         maxPlant1 = max(maxPlant1, allRounds[i].plant1);
         maxPlant2 = max(maxPlant2, allRounds[i].plant2);
         maxPlant3 = max(maxPlant3, allRounds[i].plant3);
@@ -235,7 +236,7 @@ void stats_screen()
         text.display(writeText,0x946454,230,70);
         sprintf(writeText, "%d", maxPlanted);  
         text.display(writeText,0x946454,230,85);
-        sprintf(writeText, "%d", maxDead);  
+        sprintf(writeText, "%d", maxSold);  
         text.display(writeText,0x946454,230,100);
         sprintf(writeText, "%d", maxPlant1);  
         text.display(writeText,0x946454,230,115);
@@ -577,8 +578,8 @@ void endtimer()
     text.display("THIS ROUND: ",0xFF0000,65,50);
     text.display("Number of coins: ",0x946454,70,70);
     text.display(writeText,0x946454,230,70);
-    text.display("Planted plants: ",0x946454,70,85);
-    text.display("Dead plants: ",0x946454,70,100);
+    text.display("Plants in garden: ",0x946454,70,85);
+    text.display("Plants sold: ",0x946454,70,100);
     text.display("Live Royal Catchflies: ",0x946454,70,115);
     text.display("Live Black Eyed Susans: ",0x946454,70,130);
     text.display("Live Blue Wild Indigos: ",0x946454,70,145);
@@ -586,6 +587,7 @@ void endtimer()
     text.display("Live Rose MilkWeeds: ",0x946454,70,175);
     //get information for this rounds
     stats newStats;
+    newStats.soldTot =sold;
     for (int i = 0; i < plantsptr.size(); i++)  // loop through all plants
         {
             if (plantsptr[i].isactive == 1)  // only active plants
@@ -602,16 +604,12 @@ void endtimer()
                         case 4: newStats.plant5++; break;
                     }
                 }
-                if (plantsptr[i].state == v1plant::plantstate::DEAD)
-                {
-                    newStats.dead++;
-                }
             }
         
     } 
     sprintf(writeText, "%d", newStats.planted);  // Convert coins to string
     text.display(writeText,0x946454,230,85);
-    sprintf(writeText, "%d", newStats.dead);  // Convert coins to string
+    sprintf(writeText, "%d", newStats.soldTot);  // Convert coins to string
     text.display(writeText,0x946454,230,100);
     sprintf(writeText, "%d", newStats.plant1);  // Convert coins to string
     text.display(writeText,0x946454,230,115);
@@ -915,6 +913,7 @@ void v1plant::plant_cycle()
                                 {
                                     // Mark the coordinate as available by setting available to 1
                                     availableCoords[i].available = 1;
+                                    sold++;
                                     break;  // Exit the loop once we've updated the correct coordinate
                                 }
                             }                            
