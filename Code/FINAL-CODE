@@ -291,15 +291,16 @@ void rules_screen1()
 {
     createScreen("aboutScreen.png");  
     Text text;//bareesh
-    text.display("Your apartment community has",0x946454, 70, 70);
-    text.display("started a rooftop garden and you",0x946454, 70, 80);
-    text.display("are looking after it for the",0x946454, 70, 90);
-    text.display("first month! Remember to water",0x946454, 70, 100);
-    text.display("and trim your plants regularly",0x946454, 70, 110);
-    text.display("so you can sell them and expand",0x946454, 70, 120);
-    text.display("your garden. Try to earn as much",0x946454, 70, 130);
-    text.display("money and grow as many plants as",0x946454, 70, 140);
-    text.display("you can by the end of the month.",0x946454, 70, 150);
+    text.display("Click on the plant pots to",0x946454, 70, 70);
+    text.display("water trim them. Click on the",0x946454, 70, 80);
+    text.display("coin icon. When you want to sell",0x946454, 70, 90);
+    text.display("them. You can use coins to buy",0x946454, 70, 100);
+    text.display("more plants. If you don't care",0x946454, 70, 110);
+    text.display("for your plants properly, they",0x946454, 70, 120);
+    text.display("will die. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants",0x946454, 70, 140);
+    text.display("as you can by the end of the",0x946454, 70, 150);
+    text.display("month.",0x946454, 70, 160);
     goBackStart(start_screen);
 }
 
