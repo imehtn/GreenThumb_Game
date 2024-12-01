@@ -299,8 +299,8 @@ void rules_screen1()
     text.display("for your plants properly, they",0x946454, 70, 120);
     text.display("will die. Try to earn as much",0x946454, 70, 130);
     text.display("money and grow as many plants",0x946454, 70, 140);
-    text.display("as you can by the end of the",0x946454, 70, 150);
-    text.display("month.",0x946454, 70, 160);
+    text.display("as you can before the timer",0x946454, 70, 150);
+    text.display("runs out.",0x946454, 70, 160);
     goBackStart(start_screen);
 }
 
@@ -556,7 +556,7 @@ void start_screen()
     createScreen("View_1.png");  
     FEHImage bar;
     bar.Open("bar.png");
-    bar.Draw(0,213);
+    bar.Draw(0,0);
     FEHImage plant("potplantTR.png");
     plant.Draw(115,213);
     FEHImage about("aboutIcon.png");
@@ -588,11 +588,11 @@ void endtimer()//draws final end-game screen with game session stats and the rep
     FEHImage logo;
     logo.Open("logo.png");
     logo.Draw(0,0);
-    FEHImage bar;
-    bar.Open("bar.png");
-    bar.Draw(0,213);
+    //FEHImage bar;
+    //bar.Open("bar.png");
+    //bar.Draw(0,213);
     Sleep(1000);
-    createScreen("endScreen.png");
+    createScreen("aboutScreen.png");
     FEHImage replay;
     replay.Open("Return.png");
     replay.Draw(10,85);
