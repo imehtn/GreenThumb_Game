@@ -15,6 +15,9 @@ bool isPlantScreenActive = false;
 //Written by Ingrid
 void toolBar(void screen1(), void screen2())
 {
+    FEHImage bar ("bar.png");
+    bar.Draw(0,0);
+
     FEHImage plant("potplantTR.png");//draws the shop icon
     plant.Draw(115,213);
 
