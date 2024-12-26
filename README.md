@@ -4,7 +4,7 @@ The Images folder contains all the images that were used as game graphics.
 ----------------------------------------------------------------------------------
 PREMISE: 
 
-Learn about the world around you!
+Want to learn about the world around you?
 Whether you want to de-stress, have an interest in gardening, or are looking for something new, Green Thumb is here for you!
 
 In Green Thumb, you play as a resident of an apartment complex that has decided to start a rooftop community garden, and you were chosen to oversee the garden for the first week! During the game, you will find a relaxing ambience in which you can plant and care for different Columbus-native plants.
