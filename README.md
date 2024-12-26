@@ -1,5 +1,5 @@
 The Code folder contains all the code that was worked on, even the if it wasn't used. The FINALCODE folder contains the final code for the game.
-The Images folder contains all the images that were used as game graphics.
+The Images folder contains all the art that was used for game graphics.
 
 ----------------------------------------------------------------------------------
 PREMISE: 
