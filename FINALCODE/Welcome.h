@@ -1,3 +1,5 @@
+//header file to make the welcome screen
+
 #ifndef Welcome_H
 #define Welcome_H
 
