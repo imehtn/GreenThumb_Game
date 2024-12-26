@@ -1,0 +1,984 @@
+//main code with comments 
+
+#include <FEHLCD.h>
+#include <FEHImages.h>
+#include <FEHUtility.h>
+#include <Text.h>
+#include <Welcome.h>
+#include <mainPage.h>
+#include <vector>
+#include <utility>
+#include <iostream>
+
+using namespace std;
+
+//Buttons for handlebuttonpress() function - ingrid
+struct Button {
+    int x1, x2, y1, y2;//button coordinates
+    int plantIndex;//indicates plant species
+};
+
+//buttons for user to buy plants
+Button buyButtons[] = 
+{
+    {48, 68, 140, 149, 0},
+    {96, 116, 140, 149, 1},
+    {144, 164,140, 149, 2},
+    {192, 212, 140, 149, 3},
+    {240, 260, 140, 149, 4},
+    {250, 280, 30, 60, -1} // Back button
+};
+
+//buttons for user to use
+Button useButtons[] =
+{
+    {66, 86, 140, 149, 0},
+    {114, 134, 140, 149, 1},
+    {162, 182,140, 149, 2},
+    {210, 230, 140, 149, 3},
+    {258, 278, 140, 149, 4},
+    {250, 280, 30, 60, -1}
+};
+//buttons for user to see more
+Button moreButtons[] =
+{
+    {54, 74, 154, 163, 0},
+    {102, 122, 154, 163, 1},
+    {150, 170,154, 163, 2},
+    {198, 218, 154, 163, 3},
+    {246, 266, 154, 163, 4},
+    {250, 280, 30, 60, -1}
+};
+
+//coins used throughout the game - ingrid
+class totCoins
+{
+    public:
+    int coins=100;
+}mycoins;
+
+/*
+Allows the game to create various plant objects and manage different plant lifecycles throughout the game session.
+Draw functions are responsible for drawing the species of plant selected by the user, plant species is stored in planttype.
+Defines the health states of the plants to cycle through.
+Written by Bareesh and Ingrid
+*/
+class v1plant {
+public:
+    int price;//Ingrid - sets price of the plant according to species
+    int owned;//Ingrid
+    const char* image;
+
+    // Bareesh: Functions to draw specific species at different stages of life and health
+    void plant_seed();
+    void plant();
+    void plant_sick();
+    void plant_overgrown();
+    void plant_dead();
+    void sell(); 
+    
+    void plant_initialize(); // Bareesh: Sets timer, draws seed, draws fully grown plant
+    void plant_cycle(); // Bareesh: plant care system based on time-based interactions, will show watering, trimming, selling at certain time intervals, will show dead status if not cared for within time constrains
+    void settime(); // Bareesh: time-based plant care components - starts time the plant has been left unwatered and untrimmed
+    int xcoord = 0, ycoord = 0; // fixed pot coordinates
+    float drytime;
+    float selltime;
+    float overgrowntime;
+
+    int isactive = 0; // 0 means inactive, 1 means active (including dead, as long as its drawn onscreen)
+    int planttype; // variable to store plant type for void type
+
+    enum class plantstate {SEED, PLANT, DRY, OVERGROWN, DEAD, SELL }; // Bareesh: States of the plant used in plant_cycle
+    plantstate state; // declaring variable for plantstate for use in member functions
+    
+    //Ingrid: Constructors set intial values for plant objects
+    v1plant() 
+        : price(0), owned(0), image(""), isactive(0), state(plantstate::SEED), drytime(0), overgrowntime(0), selltime(0) {}
+
+    v1plant(int price, int owned, const char* image)
+        : price(price), owned(owned), image(image), isactive(0), state(plantstate::SEED), drytime(0), overgrowntime(0), selltime(0) {}
+};
+
+//Coordinates where plants can be planted and their availability -ingrid
+struct plantCoord{
+    int x1,y1, available;
+};
+//Array to store available coordinates - Ingrid
+vector<plantCoord> availableCoords=
+{
+    {30,105,0},{70,105,0},{110,105,0},{150,105,1},{190,105,1},
+    {30,155,1},{70,155,1},{110,155,1},{150,155,1},{190,155,1}
+};
+
+//vector to store all plants in use (up to 10, as there are 10 availableCoords) - Ingrid
+vector<v1plant> plantsptr;
+
+//initialize plants (only at the very beginning or when restarting) - ingrid
+void initializeAllPlants()
+{
+    if (plantsptr.empty())  // Initialize only if the plantsptr vector is empty
+    {
+        // Resize the vector to hold 10 plants
+        plantsptr.resize(10);
+
+        // Initialize the first 3 plants as active (RoyalCatchflyBaby)
+        for (int i = 0; i < 3; i++) 
+        {
+            plantsptr[i].planttype = 0;  // Set to RoyalCatchflyBaby by default
+            plantsptr[i].isactive = 1;   // Mark as active
+            plantsptr[i].xcoord = availableCoords[i].x1;  // Set coordinates
+            plantsptr[i].ycoord = availableCoords[i].y1;
+            plantsptr[i].plant_initialize();  // Initialize the plant
+            plantsptr[i].settime();           // Set the initial timers
+            availableCoords[i].available = 0; // Mark the coordinates as unavailable
+            plantsptr[i].price = 10;  // Set the plant's price
+        }
+
+        // Initialize the remaining plants as inactive (owned = 0)
+        for (int i = 3; i < 10; i++) 
+        {
+            plantsptr[i].isactive = 0;  // Mark as inactive
+            availableCoords[i].available = 1; // Mark the coordinates as available
+        }
+    }
+}
+
+int sold=0;
+//vector for price, owned, and image type
+vector<v1plant> plantsInPots = {
+    v1plant(10, 0, "RoyalCatchflyBaby.png"),
+    v1plant(15, 0, "BlackEyedSusanBaby.png"),
+    v1plant(25, 0, "BlueWildIndigoBaby.png"),
+    v1plant(50, 0, "ButterflyWeedBaby.png"),
+    v1plant(75, 0, "RoseMilkWeedBaby.png")
+};
+
+//Ingrid: statistics variables for each round, stores number of coins & number of plants grown
+class stats{
+    public: 
+    int coins, planted,soldTot,plant1,plant2,plant3,plant4,plant5;
+    stats() {
+        // Initialize all variables to 0 by default
+        coins = planted = soldTot = plant1 = plant2 = plant3 = plant4 = plant5 = 0;
+    }
+};
+
+//Ingrid: stores the stats for alltime rounds
+vector<stats> allRounds;
+
+//Bareesh & Ingrid
+void createScreen(const char* imageFilename);//General function to create necessary screens, input argument is a pointer to the .png file
+void credit_screen();//Draws credit screen with text
+void stats_screen();//Draws statistics screen with written statistics
+void rules_screen();//Draws rules screen with written rules when the user clicks the button on the main screen
+void rules_screen1();//Draws rules screen with written rules when the user clicks the rules button in the main game
+void plant_screen();//draws rooftop garden plant background
+void start_screen();//Draws main screen
+bool isWithinBounds(int x, int y, Button& btn);
+void drawinvent(v1plant &plant, int num);//Ingrid: draws inventory screen
+void aboutPlant(int plantIndex);//Ingrid: description of the different plants that appear in the shop inventory screen
+void buyPlant(int plantIndex);//Ingrid
+void endtimer();//Ingrid
+void usePlant(int plantIndex);//Ingrid
+void handleButtonPress(int x_coord, int y_coord); //Ingrid: function that reacts to clicking buttons
+void plant_manager();//Bareesh: Function that runs through time-based care function and draws plant through lifecycle stages
+
+//game starts at welcome screen
+int main(void)
+{    
+    welcome(start_screen, stats_screen,rules_screen,credit_screen);
+    
+    while(1) 
+    {
+        LCD.Update(); //Never quits
+    }
+    return 0;
+}
+
+//makes credit screen-ingrid
+void credit_screen()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Art: Bareesh Sanghavi",0x946454, 70, 70);
+    text.display("     Ingrid Escalante-Hernandez",0x946454, 70, 80);
+    text.display("Code: Bareesh Sanghavi",0x946454, 70, 110);
+    text.display("      Ingrid Escalante-Hernandez",0x946454, 70, 120);
+    text.display("Font Library: Junhao Liu",0x946454, 70, 140);
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+//Ingrid: Makes stats screen
+void stats_screen()
+{
+    createScreen("aboutScreen.png");  //draws screen
+    
+    char writeText[10];  //writes out stats
+    Text text;
+    text.display("BEST OF ALL ROUNDS: ",0xFF0000,65,50);
+    text.display("Number of coins: ",0x946454,70,70);
+    text.display("Plants in garden: ",0x946454,70,85);
+    text.display("Plants sold: ",0x946454,70,100);
+    text.display("Live Royal Catchflies: ",0x946454,70,115);
+    text.display("Live Black Eyed Susans: ",0x946454,70,130);
+    text.display("Live Blue Wild Indigos: ",0x946454,70,145);
+    text.display("Live Butterfly Weeds: ",0x946454,70,160);
+    text.display("Live Rose MilkWeeds: ",0x946454,70,175);
+
+
+    if (allRounds.empty()) //writes out the best stats achieved out of all played rounds
+    {    
+        allRounds.push_back(stats());
+    }
+
+    int maxCoins = allRounds[0].coins;
+    int maxPlanted = allRounds[0].planted;
+    int maxSold = allRounds[0].soldTot;
+    int maxPlant1 = allRounds[0].plant1;
+    int maxPlant2 = allRounds[0].plant2;
+    int maxPlant3 = allRounds[0].plant3;
+    int maxPlant4 = allRounds[0].plant4;
+    int maxPlant5 = allRounds[0].plant5;    
+
+    for (int i = 0; i < allRounds.size(); i++) 
+    {
+        maxCoins = max(maxCoins,allRounds[i].coins);
+        maxPlanted = max(maxPlanted, allRounds[i].planted);
+        maxSold = max(maxSold, allRounds[i].soldTot);
+        maxPlant1 = max(maxPlant1, allRounds[i].plant1);
+        maxPlant2 = max(maxPlant2, allRounds[i].plant2);
+        maxPlant3 = max(maxPlant3, allRounds[i].plant3);
+        maxPlant4 = max(maxPlant4, allRounds[i].plant4);
+        maxPlant5 = max(maxPlant5, allRounds[i].plant5);
+    }
+
+        sprintf(writeText, "%d", maxCoins);  // Convert coins to string
+        text.display(writeText,0x946454,230,70);
+        sprintf(writeText, "%d", maxPlanted);  
+        text.display(writeText,0x946454,230,85);
+        sprintf(writeText, "%d", maxSold);  
+        text.display(writeText,0x946454,230,100);
+        sprintf(writeText, "%d", maxPlant1);  
+        text.display(writeText,0x946454,230,115);
+        sprintf(writeText, "%d", maxPlant2);  
+        text.display(writeText,0x946454,230,130);
+        sprintf(writeText, "%d", maxPlant3);  
+        text.display(writeText,0x946454,230,145);
+        sprintf(writeText, "%d", maxPlant4);  
+        text.display(writeText,0x946454,230,160);
+        sprintf(writeText, "%d", maxPlant5);  
+        text.display(writeText,0x946454,230,175);
+
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+
+//Bareesh: makes rules screen, goes back to welcome screen
+void rules_screen()
+{
+    createScreen("aboutScreen.png");  //draws screen
+    Text text;//bareesh
+    text.display("Your apartment community has",0x946454, 70, 70);
+    text.display("started a rooftop garden and you",0x946454, 70, 80);
+    text.display("are looking after it for the",0x946454, 70, 90);
+    text.display("first month! Remember to water",0x946454, 70, 100);
+    text.display("and trim your plants regularly",0x946454, 70, 110);
+    text.display("so you can sell them and expand",0x946454, 70, 120);
+    text.display("your garden. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants as",0x946454, 70, 140);
+    text.display("you can by the end of the month.",0x946454, 70, 150);
+    goBackWelcome(start_screen, stats_screen,rules_screen,credit_screen);
+}
+
+//Bareesh: makes rules screen, goes back to plant screen
+void rules_screen1()
+{
+    createScreen("aboutScreen.png");  
+    Text text;//bareesh
+    text.display("Click on the plant pots to",0x946454, 70, 70);
+    text.display("water trim them. Click on the",0x946454, 70, 80);
+    text.display("coin icon. When you want to sell",0x946454, 70, 90);
+    text.display("them. You can use coins to buy",0x946454, 70, 100);
+    text.display("more plants. If you don't care",0x946454, 70, 110);
+    text.display("for your plants properly, they",0x946454, 70, 120);
+    text.display("will die. Try to earn as much",0x946454, 70, 130);
+    text.display("money and grow as many plants",0x946454, 70, 140);
+    text.display("as you can before the timer",0x946454, 70, 150);
+    text.display("runs out.",0x946454, 70, 160);
+    goBackStart(start_screen);
+}
+
+//handle button press on plant_screen -ingrid
+void handleButtonPress(int x_coord, int y_coord)
+{
+    for (int i = 0; i < 5; i++) 
+    {
+        // Check for Back Button Press
+        if (isWithinBounds(x_coord, y_coord, buyButtons[5])) 
+        {
+            // Go back to the main screen
+            start_screen();
+            return; // Exit function after returning to start screen
+        }
+        if (isWithinBounds(x_coord, y_coord, buyButtons[i])) 
+        {
+            buyPlant(i);
+            return;
+        }
+        else if (isWithinBounds(x_coord, y_coord, useButtons[i])) 
+        {
+          if (plantsInPots[i].owned > 0) 
+           {
+                plantsInPots[i].owned--;
+                usePlant(i);                
+            }
+        }
+        else if (isWithinBounds(x_coord, y_coord, moreButtons[i])) 
+        {
+            aboutPlant(i);
+            return;
+        }
+    }
+}
+//checks if touch is within button bounds - Ingrid
+bool isWithinBounds(int x, int y, Button &btn)
+{
+    return x >= btn.x1 && x <= btn.x2 && y >= btn.y1 && y <= btn.y2;
+}
+//if user clicks to buy plant -Ingrid
+void buyPlant(int plantIndex)
+{
+    if (mycoins.coins >= plantsInPots[plantIndex].price)
+    {
+        plantsInPots[plantIndex].owned++;//plant count increases
+        mycoins.coins -= plantsInPots[plantIndex].price;//coins decrease
+        plant_screen();//back to plant_screen (inventory)
+    }
+}
+
+//if user clicks to use plant-ingrid
+void usePlant(int plantIndex)
+{
+    // Loop through available coordinates to find an empty spot
+    for (int j = 0; j < 10; j++) 
+    {
+        if (availableCoords[j].available == 1)  // If the spot is available
+        {
+            // Create a new plant instance
+            v1plant newPlant;
+            newPlant.isactive=1;
+
+            // Set the plant's properties based on the selected index
+            newPlant.planttype = plantIndex;  // Set plant type based on selected index
+            newPlant.xcoord = availableCoords[j].x1;  // Set x-coordinate from availableCoords
+            newPlant.ycoord = availableCoords[j].y1;  // Set y-coordinate from availableCoords
+            newPlant.state = v1plant::plantstate::SEED;  // Set initial state
+            newPlant.settime();  // Set timers
+
+            // Copy other relevant properties 
+            newPlant.drytime = TimeNow();
+            newPlant.overgrowntime = TimeNow();
+            newPlant.selltime = TimeNow();
+            newPlant.price = plantsInPots[plantIndex].price;
+            availableCoords[j].available = 0;
+
+            // Add the new plant to the plantsptr vector
+            plantsptr.push_back(newPlant);
+
+            // Update the screen and return to start screen
+            LCD.Update();
+            start_screen();
+            return;  
+        }
+    }
+}
+//Draws inventory screen-ingrid
+void drawinvent(v1plant &plant, int num)
+{
+    createScreen("inventScreen.png");//draws screen
+
+    FEHImage coin("Coin2.png");//draws coin icon
+    coin.Draw(25,43);
+
+    for (int i=0;i<5;i++)//shop inventory buttons to buy plants, use plants in garden, or read plant description
+    {
+        FEHImage buy("buy.png");
+        buy.Draw(48+i*48,140);
+        FEHImage use("use.png");
+        use.Draw(66+i*48,140);
+        FEHImage more("more.png");
+        more.Draw(54+i*48,151);
+    }
+    
+    //plant image
+    FEHImage plantImages[5] = {
+        FEHImage("RoyalCatchflyBaby.png"),
+        FEHImage("BlackEyedSusanBaby.png"),
+        FEHImage("BlueIndigoBaby.png"),
+        FEHImage("ButterflyWeedBaby.png"),
+        FEHImage("RoseMilkWeedBaby.png")
+    };
+    Text text;
+    char price[15];
+    int coordinates[5]={35,83,131,179,227};
+    char ownedText[5];
+    //displays owned plants
+    for (int i = 0;i<5;i++)
+    {
+        plantImages[i].Draw(40 + i * 48, 76);
+        LCD.SetFontColor(BLACK);
+        sprintf(ownedText, "%d", plantsInPots[i].owned);  // Convert owned count to string
+        sprintf(price, "$%d", plantsInPots[i].price);  // Convert owned count to string
+        LCD.WriteAt(ownedText, coordinates[i], 72); 
+        text.display(price,0x000000,coordinates[i]+12,130);
+    }
+}
+
+//Ingrid: plant species information, the input argument is the number aligning to the plant species
+void aboutPlant(int plantIndex)
+{
+    createScreen("aboutScreen.png"); 
+
+    Text text;//bareesh
+    if (plantIndex == 0) 
+    {
+        text.display("The Royal Catchfly is a member of ",0x946454, 55, 70);
+        text.display("the carnation family. It is",0x946454, 55, 82);
+        text.display("becoming increasingly rare due to",0x946454, 55, 94);
+        text.display("entirpation from  agricultural",0x946454, 55, 106);
+        text.display("removal.",0x946454, 55, 120);
+        text.display("Expect these plants to bloom in mid ",0x946454, 55, 135);
+        text.display("to late summer and  mature to up to",0x946454, 55, 147);
+        text.display("2-3 feet tall. They also attract ",0x946454, 55, 159);
+        text.display("butterfiles and hummingbirds!.",0x946454, 55, 171);
+    }
+    else if (plantIndex == 1)
+    {
+        text.display("Black-Eyed Susans last 6-10 days.",0x946454, 55, 70);
+        text.display("They represent encouragement. ",0x946454, 55, 82);
+        text.display("They also grow fast and up to 2 feet",0x946454, 55, 94);
+        text.display("and require full or partial sun. ",0x946454, 55, 106);
+        text.display("Blooming happens profusely between ",0x946454, 55, 120);
+        text.display("June and October.",0x946454, 55, 132);
+        text.display("",0x946454, 55, 130);
+        text.display("Warning: ",0xFF0000, 55, 156);
+        text.display("This flower can  become intrusive!.",0x946454, 55, 168);
+    }
+    else if (plantIndex == 2)
+    {
+        text.display("The Blue Wild Indigo is also known ",0x946454, 55, 70);
+        text.display("as the False Indigo, but grows much",0x946454, 55, 82);
+        text.display("faster than the true Indigo. They",0x946454, 55, 94);
+        text.display("produce striking blue flowers from ",0x946454, 55, 106);
+        text.display("May to June, maturing up to 3-4 feet",0x946454, 55, 120);
+        text.display("tall and 2-3 feet wide. ",0x946454, 55, 132);
+        text.display("In general, they need full sun to",0x946454, 55, 144);
+        text.display("partial shade and moderately dry to",0x946454, 55, 156);
+        text.display("moderately wet soil.",0x946454, 55, 168);
+    }
+    else if (plantIndex == 3)
+    {
+        text.display("The Butterfly Weed has a long, ",0x946454, 55, 66);
+        text.display("summer blooming period that can ",0x946454, 55, 78);
+        text.display("last from June through October if ",0x946454, 55, 90);
+        text.display("they are dreadheaded. They grow fast",0x946454, 55, 102);
+        text.display("and reach a mature heigt of 2 feet",0x946454, 55, 114);
+        text.display("tall, requiring full sun. ",0x946454, 55, 126);
+        text.display("Warning: ",0xFF0000, 55, 142);
+        text.display("If cold damage occurs, the plants",0x946454, 55, 156);
+        text.display("will die back to the crown, but will ",0x946454, 55, 168);
+        text.display("re-sprout vigorously.",0x946454, 55, 180);
+    }
+    else if (plantIndex == 4)
+    {
+        text.display("The Rose Milkweed has a sweet   ",0x946454, 55, 66);
+        text.display("vanilla fragrance and attracts ",0x946454, 55, 78);
+        text.display("butterlies and other pollinators. ",0x946454, 55, 90);
+        text.display("Bright pink, white, and purple",0x946454, 55, 102);
+        text.display("clusters of flowers appear in summer",0x946454, 55, 114);
+        text.display("at the tops of the stems. They need ",0x946454, 55, 126);
+        text.display("full sun or partial shade and can",0x946454, 55, 138);
+        text.display("grow to be 4 feet tall. ",0x946454, 55, 150);
+    }
+
+    int p_coord, q_coord;
+
+    while(true)//returns to main screen
+    {
+        // Waits for click
+        while(!LCD.Touch(&p_coord, &q_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&p_coord, &q_coord)){}
+
+        // If the click coordinates are within the button, (does stuff)
+        if(p_coord>=250 && p_coord<=280 && q_coord<=60 && q_coord>=30)
+        {
+            createScreen("View_1.png");  // Call the generic function with the inventory screen image
+            FEHImage bar("bar.png");
+            bar.Draw(0,213);
+            FEHImage plant("potplantTR.png");
+            plant.Draw(115,213);
+
+            FEHImage about("aboutIcon.png");
+            about.Draw(155,211);
+            plant_screen();
+        }
+        
+        LCD.Update();
+    }
+}
+
+//makes inventory/shop screen with buttons and such - Ingrid
+void plant_screen()
+{   
+    drawinvent(plantsInPots[0],0);
+
+    char coinsText[10];  
+    sprintf(coinsText, "%d", mycoins.coins);  // Convert coins to string
+    Text text;
+    text.display(coinsText,0x000000, 57, 52);
+
+    Sleep(100);
+    int x_coord, y_coord;
+    while (true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+            handleButtonPress(x_coord, y_coord);
+            LCD.Update();
+    }
+}
+
+//makes main screen - Ingrid
+void start_screen()
+{
+    createScreen("View_1.png");  
+    FEHImage bar;
+    bar.Open("bar.png");
+    bar.Draw(0,0);
+    FEHImage plant("potplantTR.png");
+    plant.Draw(115,213);
+    FEHImage about("aboutIcon.png");
+    about.Draw(155,211);
+
+    if (plantsptr.empty())  // Check if plantsptr is empty, if so initialize the plants
+    {
+        initializeAllPlants();  // Initialize plantsptr with plants
+    }
+
+    plant_manager();
+}
+//Bareesh: sets timers for the time plant object has gone without being watered, trimmed, or sold
+void v1plant::settime()
+{
+    drytime = TimeNow();
+    overgrowntime = TimeNow();
+    selltime = TimeNow();
+}
+
+//Ingrid: maxTime is the time for this round, when timer runs out endtimer() is called
+float timer=0;
+float maxTime=120;
+char timeString[20];
+void endtimer()//draws final end-game screen with game session stats and the replay button
+{
+    //draws end-game images
+    createScreen("final.png");
+    FEHImage logo;
+    logo.Open("logo.png");
+    logo.Draw(0,0);
+    //FEHImage bar;
+    //bar.Open("bar.png");
+    //bar.Draw(0,213);
+    Sleep(1000);
+    createScreen("aboutScreen.png");
+    FEHImage replay;
+    replay.Open("Return.png");
+    replay.Draw(10,85);
+
+    //writes session statistics
+    char writeText[10];  
+    sprintf(writeText, "%d", mycoins.coins);  // Convert coins to string
+    Text text;
+    text.display("THIS ROUND: ",0xFF0000,65,50);
+    text.display("Number of coins: ",0x946454,70,70);
+    text.display(writeText,0x946454,230,70);
+    text.display("Plants in garden: ",0x946454,70,85);
+    text.display("Plants sold: ",0x946454,70,100);
+    text.display("Live Royal Catchflies: ",0x946454,70,115);
+    text.display("Live Black Eyed Susans: ",0x946454,70,130);
+    text.display("Live Blue Wild Indigos: ",0x946454,70,145);
+    text.display("Live Butterfly Weeds: ",0x946454,70,160);
+    text.display("Live Rose MilkWeeds: ",0x946454,70,175);
+    
+    //get information for this rounds
+    stats newStats;
+    newStats.soldTot =sold;
+    for (int i = 0; i < plantsptr.size(); i++)  // loop through all plants
+        {
+            if (plantsptr[i].isactive == 1)  // only active plants
+            {
+                newStats.planted++;
+                if (plantsptr[i].state != v1plant::plantstate::DEAD)
+                {
+                    switch (plantsptr[i].planttype)
+                    {
+                        case 0: newStats.plant1++; break;
+                        case 1: newStats.plant2++; break;
+                        case 2: newStats.plant3++; break;
+                        case 3: newStats.plant4++; break;
+                        case 4: newStats.plant5++; break;
+                    }
+                }
+            }
+        
+    } 
+    sprintf(writeText, "%d", newStats.planted);  // Convert coins to string
+    text.display(writeText,0x946454,230,85);
+    sprintf(writeText, "%d", newStats.soldTot);  // Convert coins to string
+    text.display(writeText,0x946454,230,100);
+    sprintf(writeText, "%d", newStats.plant1);  // Convert coins to string
+    text.display(writeText,0x946454,230,115);
+    sprintf(writeText, "%d", newStats.plant2);  // Convert coins to string
+    text.display(writeText,0x946454,230,130);
+    sprintf(writeText, "%d", newStats.plant3);  // Convert coins to string
+    text.display(writeText,0x946454,230,145);
+    sprintf(writeText, "%d", newStats.plant4);  // Convert coins to string
+    text.display(writeText,0x946454,230,160);
+    sprintf(writeText, "%d", newStats.plant5);  // Convert coins to string
+    text.display(writeText,0x946454,230,175);
+    newStats.coins = mycoins.coins;
+    allRounds.push_back(newStats);
+    
+    //search for click (return button), to return to welcome screen and replay
+    int x_coord, y_coord;
+    while(true)
+    {
+        // Waits for click
+        while(!LCD.Touch(&x_coord, &y_coord)){}
+
+        // Waits for release
+        while(LCD.Touch(&x_coord, &y_coord)){}
+
+        //if cliked, restarts stats
+        if(x_coord>=140 && x_coord<=170 && y_coord<=203 && y_coord>=190)
+        {
+            timer = 0;
+            plantsptr.clear();
+            mycoins.coins=100;
+            welcome(start_screen, stats_screen,rules_screen,credit_screen);       
+        }
+        LCD.Update();
+    }
+}
+
+//Bareesh: Manages how plants show on start_screen and when water and trim icons appear
+void plant_manager()
+{   
+    if (timer==0)
+    {
+        timer = TimeNow();
+    }
+
+    Text text;
+    float countDown;
+    int display;
+
+    while (true)
+    {   
+        //shows time countdown for game session
+        countDown = maxTime - (TimeNow()-timer);
+
+        if (countDown > 0)
+        {
+            LCD.SetFontColor(LIGHTSKYBLUE);
+            LCD.FillRectangle(10,10,110,10);
+            sprintf(timeString, "%-3.f Seconds Left", countDown);  // Convert owned count to string
+            text.display(timeString,0xffffff,12,12);
+            Sleep(50);
+        } //if time is over
+        else 
+        {
+            endtimer();
+            break;
+        }
+
+        // Draw plants based on their current state (without resetting)
+        for (int i = 0; i < plantsptr.size(); i++)  // loop through all plants
+        {
+            if (plantsptr[i].isactive == 1)  // only loops through active plants
+            {
+                // Handle plant drawings based on the current state of each plant
+                switch (plantsptr[i].state)
+                {
+                    case v1plant::plantstate::SEED:
+                        plantsptr[i].plant_seed();
+                         plantsptr[i].plant_initialize();//seeds are new plants and must be intiialized (drawn, switched to grown plants, and timers set up)
+                        break;
+                    case v1plant::plantstate::PLANT:
+                        plantsptr[i].plant();
+                        break;
+                    case v1plant::plantstate::DRY:
+                        plantsptr[i].plant_sick();
+                        break;
+                    case v1plant::plantstate::OVERGROWN:
+                        plantsptr[i].plant_overgrown();
+                        break;
+                    case v1plant::plantstate::DEAD:
+                        plantsptr[i].plant_dead();
+                        break;
+                    case v1plant::plantstate::SELL:
+                        plantsptr[i].sell();
+                        break;
+                }
+                if (plantsptr[i].state == v1plant::plantstate::SEED) 
+                {
+                    // only initialize the plant if it's still in the seed state
+                    plantsptr[i].plant_initialize();
+                } 
+                else 
+                {
+                    //just update the plant's current state (don't reinitialize)
+                    plantsptr[i].plant_cycle();
+                }        
+            }
+        }
+        //toolbar options (plant_screen and rules)
+        toolBar(plant_screen,rules_screen1);
+        LCD.Update(); 
+    }
+}
+//Bareesh: seed state, draws image depending on plant species, or 'planttype', selected by user in store inventory
+void v1plant:: plant_seed()
+{
+    FEHImage seed;
+    switch (planttype) {
+        case 1: seed.Open("BlackEyedSusanBaby.png"); break;
+        case 2: seed.Open("BlueIndigoBaby.png"); break;
+        case 3: seed.Open("ButterflyWeedBaby.png"); break;
+        case 4: seed.Open("RoseMilkWeedBaby.png"); break;
+        case 0: seed.Open("RoyalCatchflyBaby.png"); break;
+    }
+    seed.Draw(xcoord,ycoord);
+}
+//Bareesh: fully grown plant image drawn based on user-selected plant species
+void v1plant::plant()
+{
+    FEHImage plantImage;
+    switch (planttype) {
+        case 1: plantImage.Open("BlackEyedSusan.png"); break;
+        case 2: plantImage.Open("BlueIndigoGrown.png"); break;
+        case 3: plantImage.Open("ButterflyWeed.png"); break;
+        case 4: plantImage.Open("RoseMilkweed50.png"); break;
+        case 0: plantImage.Open("RoyalCatchfly60.png"); break;
+    }
+    plantImage.Draw(xcoord,ycoord);
+}
+
+//Bareesh: dry plant image drawn based on user-selected plant species
+void v1plant:: plant_sick()
+{
+    FEHImage sick;
+    switch (planttype)
+    {
+        case 1: sick.Open("BlackEyedSusanDry.png"); break;
+        case 2: sick.Open("BlueIndigoDry.png"); break;
+        case 3: sick.Open("ButterflyWeedDry.png"); break;
+        case 4: sick.Open("RoseMilkweedDry.png"); break;
+        case 0: sick.Open("royalCatchflyDry.png"); break;
+    }
+    sick.Draw(xcoord,ycoord);
+}
+
+//Bareesh: overgrown plant image drawn based on user-selected plant species
+void v1plant:: plant_overgrown()
+{
+    FEHImage overgrownImage;
+    switch (planttype) {
+        case 1: overgrownImage.Open("BlackEyedSusanCut.png"); break;
+        case 2: overgrownImage.Open("BlueIndigoCut.png"); break;
+        case 3: overgrownImage.Open("ButterflyWeedCut.png"); break;
+        case 4: overgrownImage.Open("RoseMilkweedCut.png"); break;
+        case 0: overgrownImage.Open("RoyalCatchflyCut.png"); break;
+    }
+    overgrownImage.Draw(xcoord,ycoord);
+}
+
+//Bareesh: fully grown plant image ready to sell drawn based on user-selected plant species
+void v1plant::sell()
+{
+    FEHImage sellImage;
+    switch (planttype) {
+        case 1: sellImage.Open("BlackEyedSusanSell.png"); break;
+        case 2: sellImage.Open("BlueWildIndigoSell.png"); break;
+        case 3: sellImage.Open("ButterflyWeedSell.png"); break;
+        case 4: sellImage.Open("RoseMilkweedSell.png"); break;
+        case 0: sellImage.Open("RoyalCatchflySell.png"); break;
+    }
+
+    sellImage.Draw(xcoord,ycoord);
+}
+
+//Bareesh: dead plant image drawn based on user-selected plant species
+void v1plant:: plant_dead()
+{
+    FEHImage deadImage;
+    switch (planttype) 
+    {
+        case 1: deadImage.Open("BlackEyedSusanDead.png"); break;
+        case 2: deadImage.Open("BlueIndigoDead.png"); break;
+        case 3: deadImage.Open("ButterflyWeedDead.png"); break;
+        case 4: deadImage.Open("RoseMilkweedDead.png"); break;
+        case 0: deadImage.Open("RoyalCatcflyDead.png"); break;
+    }
+    deadImage.Draw(xcoord,ycoord);
+}
+//initialize plant - bareesh
+//declares seed state, draws plant as relevant plant species, and then draws grown plant to mimick plant growth
+void v1plant:: plant_initialize()
+{
+    if (state == plantstate::SEED)
+    {
+    state = plantstate::SEED;//defining state
+    plant_seed();
+    LCD.Update();
+    Sleep(1000);
+    plant();
+    LCD.Update();
+    state = plantstate::PLANT;
+    }
+}
+//handle lifecycle (from seed to plant to dry to overgrown to sell to dead) - bareesh
+//time-based care: handles user interactions with plant object
+void v1plant::plant_cycle()
+{
+    if (state != plantstate::DEAD)//Will only carry out the function if the plant object is not dead
+    {
+        float currentTime = TimeNow();//time variable
+        switch (state)
+        {
+            case plantstate::PLANT://healthy plant
+            {
+                if (currentTime-selltime>25)//if the plant is healthy for 25 seconds, can be sold
+                {
+                    state = plantstate::SELL;//changes state
+                    sell();//allows user to sell
+                }
+                else if ((currentTime-overgrowntime)>15)//time till plant requires a trim
+                {
+                    state = plantstate::OVERGROWN;//changes state for switch case system
+                    plant_overgrown();//changes plant image
+                }
+                else if ((currentTime-drytime)>5)//time till plant dries out
+                {
+                    state = plantstate::DRY;//changes state for switch case
+                    plant_sick();//changes plant image
+                }
+                break;
+            }
+            case plantstate::DRY:
+            {
+                if ((currentTime-drytime)<=15)//grace time to restore plant health
+                {
+                    int xClick, yClick;
+                    
+                    //if the user click is registered and within the coordinate boundaries of the pot, plant health will be restored
+                    if (LCD.Touch(&xClick, &yClick))
+                    {
+                        // If the click coordinates are within the pot, plant is healthy again
+                        if (xClick>=(xcoord+16) && xClick<=(xcoord+37) && yClick<=(ycoord+49) && yClick>=(ycoord+31))//if the user touches the plant pot
+                        {
+                            drytime = TimeNow();//dry time resets, healthy plant restored
+                            //LCD.WriteLine("yay") - for debugging
+                            plant();
+                            //LCD.Update();
+                            state = plantstate::PLANT;
+                        }
+                    }
+                }
+
+                else if ((currentTime-drytime)>15)//if grace time runs out, plant dies
+                {
+                    plant_dead();
+                    state = plantstate::DEAD;
+                }
+                break;
+            }
+            case plantstate::OVERGROWN://same as Dry state, but for overgrown state
+            {
+                if ((currentTime-overgrowntime)<=25)
+                {
+                    int xClick, yClick;
+                    //while(!LCD.Touch(&xClick, &yClick)){}
+                    if (LCD.Touch(&xClick, &yClick))
+                    {
+                        // If the click coordinates are within the pot, plant is healthy again
+                        if (xClick>=(xcoord+16) && xClick<=(xcoord+37) && yClick<=(ycoord+49) && yClick>=(ycoord+31))
+                        {
+                            overgrowntime = TimeNow();
+                            plant();
+                            //LCD.Update();
+                            state = plantstate::PLANT;
+                        }
+                    }
+                }
+
+                else if ((currentTime-overgrowntime)>25)
+                {
+                    plant_dead();
+                    state = plantstate::DEAD;
+                }
+                break;
+            }
+
+            case plantstate::SELL:
+            {
+                if ((currentTime-selltime)<=35)//if plant is sold within 10 seconds of being eligible to be sold
+                {
+                    int xClick, yClick;
+                    //while(!LCD.Touch(&xClick, &yClick)){}
+                    if (LCD.Touch(&xClick, &yClick))//clicking the pot at the correct place will update the players coins, make the plant disapear, and update stats
+                    {
+                        if (xClick>=(xcoord+16) && xClick<=(xcoord+37) && yClick<=(ycoord+49) && yClick>=(ycoord+31))
+                        {
+                            mycoins.coins += price+10;  // Add price to coins
+                            for (int i = 0; i < availableCoords.size(); i++)
+                            {
+                                // Check if the coordinates match the plant's current position
+                                if (availableCoords[i].x1 == xcoord && availableCoords[i].y1 == ycoord)
+                                {
+                                    // Mark the coordinate as available by setting available to 1
+                                    availableCoords[i].available = 1;
+                                    sold++;
+                                    break;  // Exit the loop once we've updated the correct coordinate
+                                }
+                            }                            
+                            planttype = 0;  // Reset plant type (no plant or default state)
+                            drytime = 0;
+                            overgrowntime = 0;
+                            selltime=0;
+                            state = plantstate::SEED;  // Transition to SEED state
+                            isactive = 0;  // Mark plant as inactive
+
+                            LCD.Update();
+                            Sleep(100);
+                            plant_screen();
+                            break;
+                        }
+                    }
+                }
+                else 
+                {
+                    plant();
+                    state = plantstate::PLANT;
+                    selltime = TimeNow();
+                }
+                break;
+            }
+        }
+    }
+    LCD.Update();
+}
