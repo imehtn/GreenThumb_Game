@@ -1,3 +1,5 @@
+//header file to make the main page where the game takes place
+
 #ifndef mainPage_H
 #define mainPage_H
 
